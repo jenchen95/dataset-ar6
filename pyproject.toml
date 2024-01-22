@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "ar6"
+version = "0.1.0"
+description = ""
+authors = ["Chen Huang <toocold@foxmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+polars = "^0.20.5"
+proplot = "^0.9.7"
+visidata = "^3.0.2"
+pyarrow = "^15.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
