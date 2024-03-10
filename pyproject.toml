@@ -11,6 +11,7 @@ polars = "^0.20.5"
 proplot = "^0.9.7"
 visidata = "^3.0.2"
 pyarrow = "^15.0.0"
+duckdb = "^0.9.2"
 
 
 [build-system]
