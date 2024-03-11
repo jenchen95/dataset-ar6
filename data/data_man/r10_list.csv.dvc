@@ -1,0 +1,6 @@
+outs:
+- md5: cf522db47ab2a81a602de294b98aa3b4
+  size: 134
+  isexec: true
+  hash: md5
+  path: r10_list.csv

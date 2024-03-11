@@ -1,0 +1,6 @@
+outs:
+- md5: 7d82a32a705ab7f2e0236234609a818d
+  size: 3032765
+  isexec: true
+  hash: md5
+  path: gdp_per_cap_future.parquet
