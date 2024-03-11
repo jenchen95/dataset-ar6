@@ -1,0 +1,7 @@
+[core]
+    remote = r2
+['remote "t7"']
+    url = /Volumes/T7 White/dvc/dataset-AR6
+['remote "r2"']
+    url = s3://chen-r2/Dataset/dataset-AR6
+    endpointurl = https://2599843aae04d7cb74641c9f70f18c07.r2.cloudflarestorage.com
