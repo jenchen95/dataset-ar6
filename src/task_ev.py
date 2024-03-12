@@ -40,6 +40,7 @@ gdp_pop = (
     .filter(pl.col('variable').is_in(['GDP|MER', 'Population']))
     .collect()
     .pivot(index=['category','model','scenario','region','year'], columns='variable', values='value')
+    .drop_nulls(subset=['GDP|MER','Population'])
     .with_columns(gdp=pl.col('GDP|MER') * 1e9)  # billion dollars to dollar
     .with_columns(population=pl.col('Population') * 1e6)  # million people to people
     .with_columns(gdp_per_cap=pl.col('gdp') / pl.col('population'))
