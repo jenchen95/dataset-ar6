@@ -43,9 +43,8 @@ gdp_pop = (
     .drop_nulls(subset=['GDP|MER','Population'])
     .with_columns(gdp=pl.col('GDP|MER') * 1e9)  # billion dollars to dollar
     .with_columns(population=pl.col('Population') * 1e6)  # million people to people
-    .with_columns(gdp_per_cap=pl.col('gdp') / pl.col('population'))
     .with_columns(unit=pl.lit('GDP (constant 2010 US$)'))
-    .select(pl.exclude('GDP|MER','Population','population','gdp'))
+    .select(pl.exclude('GDP|MER','Population'))
 )
 
 # Interpolate
@@ -57,26 +56,34 @@ for i,j in gdp_pop.select(pl.col('model','scenario')).unique().rows():
         print(f'Now is {i}-{j}-{k}')
         region = (
             gdp_pop.filter((pl.col('model') == i) & (pl.col('scenario') ==j) & (pl.col('region') == k))
-            .select(pl.col('region','year','gdp_per_cap'))
+            .select(pl.col('region','year','gdp','population'))
             .sort('year')
         )
         if region.is_empty():
             continue
         years = region['year']
-        gdp_per_cap = region['gdp_per_cap']
-        gdp_per_cap = fit_spline(gdp_per_cap, years, parse=False)
+        gdp = region['gdp']
+        population = region['population']
+
+        gdp = fit_spline(gdp, years, parse=False)
+        population = fit_spline(population, years , parse=False).astype(int)  # integer population
+
         gdp_per_capita.append(
             pl.DataFrame({'year': np.arange(years[0], years[-1]+1),
-                          'gdp_per_cap': gdp_per_cap})
+                          'gdp': gdp,
+                          'population': population})
             .with_columns(pl.lit(i).alias('model'),
                           pl.lit(j).alias('scenario'),
                           pl.lit(k).alias('region'),
-                          pl.lit('US$(2010)').alias('unit'))
+                          gdp_per_cap = pl.col('gdp') / pl.col('population'),
+                          unit = pl.lit('US$(2010)'),
+                          unit_pop = pl.lit('person')
+                          )
         )
 
 gdp_per_capita = (
     pl.concat(gdp_per_capita)
-    .select(pl.col('model','scenario','region','year','gdp_per_cap','unit'))
+    .select(pl.col('model','scenario','region','year','gdp_per_cap','unit','population','unit_pop'))
 )
 
 # Export
