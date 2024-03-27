@@ -47,6 +47,18 @@ gdp_pop = (
     .select(pl.exclude('GDP|MER','Population'))
 )
 
+trp_ele = (
+    pl.scan_parquet('../data/data_clean/r10.parquet')
+    .filter(pl.col('category').is_in(['C1','C2','C3','C4']))
+    .filter(pl.col('variable').is_in(['Final Energy|Transportation|Electricity']))
+    .collect()
+    .pivot(index=['category','model','scenario','region','year'], columns='variable', values='value')
+    .drop_nulls(subset=['Final Energy|Transportation|Electricity'])
+    .with_columns(trp_ele=pl.col('Final Energy|Transportation|Electricity'))
+    .with_columns(unit=pl.lit('EJ'))
+    .select(pl.exclude('Final Energy|Transportation|Electricity'))
+)
+
 # Interpolate
 gdp_per_capita = []
 r10_list = pl.read_csv('../data/data_man/r10_list.csv')
@@ -86,6 +98,42 @@ gdp_per_capita = (
     .select(pl.col('model','scenario','region','year','gdp_per_cap','unit','population','unit_pop'))
 )
 
+trp_ele_interp = []
+
+for i,j in trp_ele.select(pl.col('model','scenario')).unique().rows():
+    for k in r10_list['region'].to_list():
+        print('Now interpolating Final Energy|Transportation|Electricity')
+        print(f'Now is {i}-{j}-{k}')
+        region = (
+            trp_ele.filter((pl.col('model') == i) & (pl.col('scenario') ==j) & (pl.col('region') == k))
+            .select(pl.col('region','year','trp_ele'))
+            .sort('year')
+        )
+        if region.is_empty():
+            continue
+        years = region['year']
+        ele = region['trp_ele']
+
+        ele = fit_spline(ele, years, parse=False)
+
+        trp_ele_interp.append(
+            pl.DataFrame({'year': np.arange(years[0], years[-1]+1),
+                          'trp_ele': ele})
+            .with_columns(pl.lit(i).alias('model'),
+                          pl.lit(j).alias('scenario'),
+                          pl.lit(k).alias('region'),
+                          unit = pl.lit('EJ'),
+                          )
+        )
+
+trp_ele_interp = (
+    pl.concat(trp_ele_interp)
+    .select(pl.col('model','scenario','region','year','trp_ele','unit'))
+)
+
 # Export
 gdp_per_capita.write_parquet('../data/data_task/gdp_per_cap_future.parquet')
 print('GDP per capita data exported')
+
+trp_ele_interp.write_parquet('../data/data_task/trp_ele_future.parquet')
+print('Final Energy|Transportation|Electricity data exported')

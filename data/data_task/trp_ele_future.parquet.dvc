@@ -1,0 +1,6 @@
+outs:
+- md5: 95805e001f21eb0bba88b3d50ae46838
+  size: 3792568
+  isexec: true
+  hash: md5
+  path: trp_ele_future.parquet
