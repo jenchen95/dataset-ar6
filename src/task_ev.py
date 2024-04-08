@@ -34,17 +34,55 @@ def fit_spline(series, years, parse=False):
     return granu_values
 
 # Reading
+ssp = (
+    pl.read_csv('../data/data_man/ssp_family.csv')
+)
+
 gdp_pop = (
     pl.scan_parquet('../data/data_clean/r10.parquet')
     .filter(pl.col('category').is_in(['C1','C2','C3','C4']))
-    .filter(pl.col('variable').is_in(['GDP|MER', 'Population']))
+    .filter(pl.col('variable').is_in(['GDP|MER', 'Population']))  # Only contains model-scenario which has GDP or Population
     .collect()
     .pivot(index=['category','model','scenario','region','year'], columns='variable', values='value')
-    .drop_nulls(subset=['GDP|MER','Population'])
+    .drop_nulls(subset=['GDP|MER','Population'])  # guarantee that the division is valid
     .with_columns(gdp=pl.col('GDP|MER') * 1e9)  # billion dollars to dollar
     .with_columns(population=pl.col('Population') * 1e6)  # million people to people
     .with_columns(unit=pl.lit('GDP (constant 2010 US$)'))
     .select(pl.exclude('GDP|MER','Population'))
+    .filter(pl.col('year') >= 2005)
+)
+
+gdp_pop_mean =  (
+    gdp_pop.join(ssp, on=['model','scenario'], how='left')
+    .group_by(['ssp','region','year'])
+    .agg(pl.mean('gdp'),
+         pl.mean('population')
+    )
+)
+
+gdp_pop_tofill = (
+    pl.read_csv('../data/data_import/ev_ms_check.csv')
+    .join(ssp, on=['model','scenario'], how='left')
+    .with_columns(
+        region = pl.read_csv('../data/data_man/r10_list.csv').to_series().to_list(),
+        year = list(np.arange(2005, 2101, step=5)),
+    )
+    .explode('region')
+    .explode('year')
+    .cast({'year': pl.Int32})  # match the type of year between two DataFrames
+    .join(gdp_pop_mean, on=['ssp','region','year'], how='left')
+    .join(
+        pl.read_csv('../data/data_raw/category.csv'),
+        on=['model','scenario'],
+        how='left'
+    )
+    .with_columns(unit=pl.lit('GDP (constant 2010 US$)'))
+    .select(pl.col('category','model','scenario','region','year','gdp','population','unit'))
+)
+
+gdp_pop = (
+    pl.concat([gdp_pop, gdp_pop_tofill])
+    .sort(['category','model','scenario','region','year'])
 )
 
 trp_ele = (

@@ -1,5 +1,5 @@
 outs:
-- md5: a9c24679bd7f1c5540edd5bf790613b5
-  size: 3326891
+- md5: ab9d583302a5060ca5b5cf2b025e427c
+  size: 3495053
   hash: md5
   path: gdp_per_cap_future.parquet
