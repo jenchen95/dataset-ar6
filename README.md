@@ -17,7 +17,11 @@ world.parquet
 
 ### data_raw
 
-
+### data_import
+From project critical_minerals:
+    These are two loop check from it. One is for EV and the other is for Wind.
+    ev_ms_check.csv
+    wind_ms_check.csv
 
 ### data_task
 
