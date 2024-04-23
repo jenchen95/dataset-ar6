@@ -59,6 +59,8 @@ for pairs, df in co2.group_by(['model','scenario','region']):
                 'value': fit_spline(df['value'], df['year']),
             }
         )
+        .with_columns(abatement=pl.col('value').diff().neg())
+        .with_columns(cum_abatement=pl.col('abatement').cumsum())
     )
 
 co2 = pl.concat(co2_interp)
