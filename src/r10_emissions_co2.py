@@ -33,7 +33,11 @@ def fit_spline(series, years, parse=False):
     return granu_values
 
 # Reading and Filtering
-co2_var = {'Emissions|CO2': 'total', 'Emissions|CO2|Energy|Supply|Electricity': 'ele', 'Emissions|CO2|Energy|Demand|Transportation': 'trp'}
+co2_var = {
+    'Emissions|CO2': 'total', 
+    'Emissions|CO2|Energy|Supply|Electricity': 'ele', 
+    'Emissions|CO2|Energy|Demand|Transportation': 'trp', 
+    'Carbon Sequestration|CCS|Fossil|Energy|Supply|Electricity': 'ccs_ele'}
 
 co2 = (
     pl.scan_parquet('../data/data_clean/r10.parquet')
@@ -61,7 +65,7 @@ for pairs, df in co2.group_by(['model','scenario','region','variable']):
             }
         )
         .with_columns(abatement_yearly=pl.col('value').diff().neg())
-        .with_columns(abatement_baseyear=pl.col('abatement_yearly').cumsum())
+        .with_columns(abatement_baseyear=pl.col('abatement_yearly').cumsum())  # for ccs techs, these two columns may be meaningless
     )
 co2 = pl.concat(co2_interp)
 
