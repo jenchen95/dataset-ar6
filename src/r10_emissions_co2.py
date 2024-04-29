@@ -3,7 +3,7 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 
 # Fit spline
-def fit_spline(series, years, parse=False):
+def fit_spline(series, years, parse=False, bc='natural'):
     """
     Applies cubic spline interpolation to each column of the DataFrame.
     """
@@ -19,7 +19,7 @@ def fit_spline(series, years, parse=False):
     fit_years = df['year'].to_numpy()
     fit_values = df.select(pl.exclude('year')).to_numpy()
 
-    spline = CubicSpline(fit_years, fit_values)
+    spline = CubicSpline(fit_years, fit_values, bc_type=bc)
     # Predict for all years using the fitted spline interpolation
     granu_values = spline(granu_years)
 
@@ -52,7 +52,7 @@ co2 = (
 co2_interp = []
 for pairs, df in co2.group_by(['model','scenario','region','variable']):
     print('Interpolating for co2:', pairs)
-    co2_interp.append(
+    df_interp = (
         pl.DataFrame(
             {
                 'model': pairs[0],
@@ -67,6 +67,14 @@ for pairs, df in co2.group_by(['model','scenario','region','variable']):
         .with_columns(abatement_yearly=pl.col('value').diff().neg())
         .with_columns(abatement_baseyear=pl.col('abatement_yearly').cumsum())  # for ccs techs, these two columns may be meaningless
     )
+    if co2_var[pairs[3]] == 'ccs_ele':
+        if df_interp.filter(pl.col('year') == 2025)['value'].to_numpy() <= 0.05:
+            ccs_baseyear = df_interp.filter(pl.col('year') == 2020)['value'].to_numpy()
+            df_interp = df_interp.with_columns(
+                value=pl.when(pl.col('year').is_between(2021, 2024)).then(ccs_baseyear).otherwise(pl.col('value'))
+            )
+
+    co2_interp.append(df_interp)
 co2 = pl.concat(co2_interp)
 
 # Exporting
