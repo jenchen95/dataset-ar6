@@ -1,37 +1,6 @@
 import polars as pl 
 import numpy as np
-from scipy.interpolate import CubicSpline
-
-# Fit spline
-def fit_spline(series, years, parse=False, bc='natural'):
-    """
-    Applies cubic spline interpolation to each column of the DataFrame.
-    """
-    df = pl.DataFrame([years,series]).filter(pl.exclude('year').is_not_null())
-
-    # Beginning year is the first year with non-null value
-    granu_years = np.arange(df['year'].item(0), years.max() + 1)
-
-    # If parse is True, parse df's years are divisible by 10
-    if parse is True:
-        df = df.filter(pl.col('year') % 10 == 0)
-
-    fit_years = df['year'].to_numpy()
-    fit_values = df.select(pl.exclude('year')).to_numpy()
-
-    spline = CubicSpline(fit_years, fit_values, bc_type=bc)
-    # Predict for all years using the fitted spline interpolation
-    granu_values = spline(granu_years)
-
-    # Ensure all values are non-negative
-    granu_values = np.maximum(granu_values, 0)
-    granu_values = granu_values.ravel()  # Convert to 1D array
-
-    # pad with 0s if the first year is not the beginning year
-    granu_values = np.pad(granu_values, (granu_years[0] - years[0], 0), 'constant', constant_values=0)
-
-    return granu_values
-
+from func import fit_spline
 # Reading and Filtering
 co2_var = {
     'Emissions|CO2': 'total', 
@@ -44,14 +13,15 @@ co2 = (
     .filter(pl.col('category').is_in(['C1','C2','C3','C4']))
     .filter(pl.col('variable').is_in(co2_var.keys()))
     .select(pl.exclude('category'))
-    .filter(pl.col('year').is_between(2020, 2060))
     .sort('model','scenario','region','year')
     .collect()
 )
+unit_co2 = co2['unit'][0]
 
 co2_interp = []
 for pairs, df in co2.group_by(['model','scenario','region','variable']):
     print('Interpolating for co2:', pairs)
+    year = np.arange(df['year'].min(), df['year'].max() + 1)
     df_interp = (
         pl.DataFrame(
             {
@@ -59,8 +29,8 @@ for pairs, df in co2.group_by(['model','scenario','region','variable']):
                 'scenario': pairs[1],
                 'region': pairs[2],
                 'scope': co2_var[pairs[3]],
-                'unit': 'Mt CO2/yr',
-                'year': np.arange(2020, 2061),
+                'unit': unit_co2,
+                'year': year,
                 'value': fit_spline(df['value'], df['year']),
             }
         )
