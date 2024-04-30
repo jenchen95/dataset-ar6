@@ -27,6 +27,15 @@ From project critical_minerals:
 
 - task: EV
 
-​	gdp.parquet: C1-C4 gdp, r10
+​	gdp_per_cap_future.parquet: C1-C4 gdp and population, r10
 
-​	population.parquet: C1-C4 population, r10
+   trp_ele_future: r10 transport electricity demand
+
+   r10_cap_renew.parquet: r10 renewable capacity
+
+   r10_supply_ele.parquet: r10 electricity supply
+
+   r10_emissions.parquet: r10 emissions containing total, ele, trp, ccs_ele, and ele_bau
+
+
+   
