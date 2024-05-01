@@ -44,6 +44,17 @@ for pairs, df in co2.group_by(['model','scenario','region','variable']):
 
     co2_interp.append(df_interp)
 co2 = pl.concat(co2_interp)
+# Fill null with 0 for ccs_ele
+co2 = (
+    co2.pivot(index=['model','scenario','region','year','unit'],columns=['scope'],values='value')
+    .with_columns(
+        ccs_ele=pl.when(pl.col('ccs_ele').is_not_null())
+        .then(pl.col('ccs_ele'))
+        .otherwise(pl.lit(0))
+    )
+    .melt(id_vars=['model','scenario','region','year','unit'], variable_name='scope', value_name='value')
+    .select(pl.col('model','scenario','region','scope','unit','year','value'))
+)
 
 # Calculate bau electricity emissions
 ele_gen = pl.read_parquet('../data/data_task/r10_supply_ele.parquet')
