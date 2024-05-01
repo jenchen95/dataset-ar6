@@ -76,6 +76,42 @@ ele_gen_bau = pl.concat(ele_co2_bau)
 co2 = co2.vstack(
     ele_gen_bau.select(pl.col('model','scenario','region','scope','unit','year','value'))
     )
+
+# Calculate bau transportation emissions
+vehicle_stock = pl.read_parquet('../data/data_import/gdp_vehicle_fitting.parquet')
+trp_co2 = (  # join and calculate intensity
+    vehicle_stock
+    .join(
+        co2.filter(pl.col('scope') == 'trp').rename({'value':'co2'}), on=['model','scenario','region','year'], how='inner'  # TODO: maybe future fillnull for model-scenario in co2 doesn't have vehicle stock. Slighly different from ele_gen, vehicle stock contains all model-scenario used in this project (474 model-scenario)
+    ).with_columns(
+        intensity=pl.col('co2') / pl.col('vehicle') * 10e6 # Mt/million vehicle or t/vehicle
+    )
+)
+
+trp_co2_bau = []
+for pairs, df in trp_co2.group_by(['model','scenario','region']):
+    print('Setting bau intensity for trp:', pairs)
+    intensity_const = df.filter(pl.col('year') == 2020)['intensity'].to_numpy()
+    df = (
+        df.with_columns(
+        intensity=pl.when(pl.col('year') >= 2021)
+        .then(intensity_const)
+        .otherwise(pl.col('intensity'))
+        ).with_columns(
+        value=pl.col('vehicle') * pl.col('intensity') / 10e6  # Mt
+        ).with_columns(
+        scope=pl.lit('trp_bau')
+        ).select(pl.exclude('unit')).rename({'unit_right':'unit'})
+    )
+
+    trp_co2_bau.append(df)
+
+vehicle_stock_bau = pl.concat(trp_co2_bau)
+co2 = co2.vstack(
+    vehicle_stock_bau.select(pl.col('model','scenario','region','scope','unit','year','value'))
+    )
+
+
 # Exporting
 co2.write_parquet('../data/data_task/r10_emissions_co2.parquet')
 print('co2 done')

@@ -1,0 +1,14 @@
+md5: 028812295470ca6dda2025409b2ecc15
+frozen: true
+deps:
+- path: data/data_task/gdp_vehicle_fitting.parquet
+  repo:
+    url: git@gitee.com:chenhuang18/dataset-ev.git
+    rev_lock: b5adf6a9c2d149a67b2861170ccc12e2739c24ac
+    config: .dvc/config.local
+outs:
+- md5: 196e6dccafd5e267fa1b38f332dea9cf
+  size: 8497677
+  isexec: true
+  hash: md5
+  path: gdp_vehicle_fitting.parquet
