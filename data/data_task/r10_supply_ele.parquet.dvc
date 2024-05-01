@@ -1,6 +1,5 @@
 outs:
-- md5: 0c3045db4a73c54bc5191b757eaa27c9
-  size: 4040243
-  isexec: true
+- md5: 4346229c8c44a55c44a7c15fea7bd0ed
+  size: 4044260
   hash: md5
   path: r10_supply_ele.parquet

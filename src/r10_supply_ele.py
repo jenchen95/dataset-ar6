@@ -33,6 +33,15 @@ for pairs, df in ele_gen.group_by(['model', 'scenario', 'region', 'variable']):
 
 ele_gen = pl.concat(ele_gen_interp)
 
+# BUG fix: WITCH 5.0's EN_NPi2020_800 and EN_NPi2020_900 wrong value
+ele_gen = ele_gen.update(
+    ele_gen.filter(
+    (pl.col('model') == 'WITCH 5.0') & (pl.col('scenario').is_in(['EN_NPi2020_800f','EN_NPi2020_900f']))
+    ).with_columns(scenario=pl.when(pl.col('scenario') == 'EN_NPi2020_800f').then(pl.lit('EN_NPi2020_800')).otherwise(pl.lit('EN_NPi2020_900'))).sort(['model','scenario','region','year']),
+    on = ['model','scenario','region','year'],
+    how = 'left'
+)
+
 # Exporting
 ele_gen.write_parquet('../data/data_task/r10_supply_ele.parquet')
 print('ele_gen done')
