@@ -22,8 +22,8 @@ build-backend = "poetry.core.masonry.api"
 [[tool.poetry.source]]
 name = "aliyun"
 url = "http://mirrors.aliyun.com/pypi/simple"
-priority = "primary"
+priority = "supplemental"
 
 [[tool.poetry.source]]
 name = "PyPI"
-priority = "supplemental"
+priority = "primary"
