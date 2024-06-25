@@ -75,4 +75,32 @@ create or replace temp table trp_check_vkm as (
 select model, scenario from trp_check_vkm  -- 6, all REMIND-Transport 2.1
 group by model, scenario;
 
+create or replace temp table trp_check_road_ftele as (
+	select model, scenario, variable from read_parquet(${ar6_clean} || 'r10.parquet')
+	where 
+		variable = 'Final Energy|Transportation|Road|Freight|Electric'
+		and category in ('C1', 'C2', 'C3', 'C4')
+	group by model, scenario, variable
+)
 
+create or replace temp table trp_road_ftele as (
+	select 
+		tr.category as category,
+		tr.model as model,
+		tr.scenario as scenario,
+		tr.region as region,
+		tr.variable as variable,
+		tr.unit as unit,
+		tr.year as year,
+		tr.value as value
+	from read_parquet(${ar6_clean} || 'r10.parquet') tr
+	right join trp_check_road_ftele tc using (model, scenario)
+	where  
+		tr.variable = 'Final Energy|Transportation|Road|Freight|Electric'
+		and tr.category in ('C1', 'C2', 'C3', 'C4')
+		and tc.model not null and tc.scenario not null
+)
+
+select * from trp_road_ftele
+left join trp_ele using (model, scenario, region, year)
+;
