@@ -104,3 +104,34 @@ create or replace temp table trp_road_ftele as (
 select * from trp_road_ftele
 left join trp_ele using (model, scenario, region, year)
 ;
+create or replace temp table trp_check_rail as (
+	select model, scenario, variable from read_parquet(${ar6_clean} || 'r10.parquet')
+	where 
+		variable = 'Final Energy|Transportation|Rail'
+		and category in ('C1', 'C2', 'C3', 'C4')
+	group by model, scenario, variable
+)
+
+create or replace temp table trp_rail as (
+	select 
+		tr.category as category,
+		tr.model as model,
+		tr.scenario as scenario,
+		tr.region as region,
+		tr.variable as variable,
+		tr.unit as unit,
+		tr.year as year,
+		tr.value as value
+	from read_parquet(${ar6_clean} || 'r10.parquet') tr
+	right join trp_check_rail tc using (model, scenario)
+	where  
+		tr.variable = 'Final Energy|Transportation|Rail'
+		and tr.category in ('C1', 'C2', 'C3', 'C4')
+		and tc.model not null and tc.scenario not null
+)
+
+select * from trp_rail
+left join trp_ele using (model, scenario, region, year)
+where region = 'R10CHINA+'
+;
+
