@@ -1,5 +1,5 @@
 outs:
-- md5: 5eb26d0d9675b58fed55a170ef4a9a4a
-  size: 3787084
+- md5: 9d68ba5bf783e54dd31b3dfd256e5d8e
+  size: 802335
   hash: md5
   path: trp_ele_future.parquet

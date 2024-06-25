@@ -104,6 +104,7 @@ create or replace temp table trp_road_ftele as (
 select * from trp_road_ftele
 left join trp_ele using (model, scenario, region, year)
 ;
+
 create or replace temp table trp_check_rail as (
 	select model, scenario, variable from read_parquet(${ar6_clean} || 'r10.parquet')
 	where 
@@ -130,9 +131,20 @@ create or replace temp table trp_rail as (
 		and tc.model not null and tc.scenario not null
 )
 
-select * from trp_rail
+with test as (
+select
+*,
+trp_rail.value / trp_ele.trp_ele  as rail_in_trp_ele
+from trp_rail
 left join trp_ele using (model, scenario, region, year)
-where region = 'R10CHINA+'
+where 
+	year in (2100) and region <> 'R10ROWO'
+order by rail_in_trp_ele 
+)
+select region, year, 1 - mean(rail_in_trp_ele) as trp_ele_exc_rail
+from test 
+group by region, year
+order by region, year desc
 ;
 
 
