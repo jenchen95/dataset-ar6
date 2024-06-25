@@ -135,3 +135,12 @@ left join trp_ele using (model, scenario, region, year)
 where region = 'R10CHINA+'
 ;
 
+
+create or replace temp table trp_stock_road as (
+	select model, scenario, variable from read_parquet(${ar6_clean} || 'r10.parquet')
+	where 
+		variable = 'Transport|Stock|Road'  
+	group by model, scenario, variable
+);
+select * from trp_stock_road; -- just several model
+
