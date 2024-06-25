@@ -6,7 +6,7 @@ LOAD postgres;
 ATTACH 'dbname=critical_minerals user=postgres host=127.0.0.1' AS db1 (TYPE POSTGRES, READ_ONLY);
 
 
-CREATE OR REPLACE VIEW trp_ele as (
+CREATE OR REPLACE temp table trp_ele as (
 	select * from read_parquet(${ar6_task} || 'trp_ele_future.parquet')
 );
 
@@ -63,7 +63,16 @@ group by model, scenario
 except
 select model, scenario from trp_check_rdps;
 
+create or replace temp table trp_check_vkm as (
+	select model, scenario, variable from read_parquet(${ar6_clean} || 'r10.parquet')
+	where 
+		variable = 'Energy Service|Transportation|Road'
+		and category in ('C1', 'C2', 'C3', 'C4')
+	group by model, scenario, variable
+)
 
 
+select model, scenario from trp_check_vkm  -- 6, all REMIND-Transport 2.1
+group by model, scenario;
 
 
