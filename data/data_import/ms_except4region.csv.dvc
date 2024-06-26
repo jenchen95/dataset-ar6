@@ -1,0 +1,15 @@
+md5: 1bba84ddfe12d366c98f98850aa56964
+frozen: true
+deps:
+- path: data/data_man/ms_except4region.csv
+  repo:
+    url: git@gitee.com:chenhuang18/critical_minerals.git
+    rev: dev
+    rev_lock: 96ec5f26c53e4e5c5467335baab0c32d27700076
+    config: .dvc/config.local
+outs:
+- md5: e40af82d114be2586a1a90ee9f69e24b
+  size: 1424
+  isexec: true
+  hash: md5
+  path: ms_except4region.csv

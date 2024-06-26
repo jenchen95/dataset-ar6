@@ -1,11 +1,11 @@
-md5: 6454cb3e5b881c9316b4afaed7d38291
+md5: 8e3ace77d1d47aa7764ba9276687a5ee
 frozen: true
 deps:
 - path: data/data_output/ev_ms_check.csv
   repo:
     url: git@gitee.com:chenhuang18/critical_minerals
     rev: dev
-    rev_lock: 540099ff0b7d77659ce6f389972b12e6bb228cfb
+    rev_lock: 96ec5f26c53e4e5c5467335baab0c32d27700076
     config: .dvc/config.local
 outs:
 - md5: 574c0e73c7c761040d9874fb947c10df

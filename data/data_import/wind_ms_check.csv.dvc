@@ -1,11 +1,11 @@
-md5: 7a0a5009f586aaa08208e21b90519b14
+md5: 818aeff45d5a54961d9cf441e06df4f5
 frozen: true
 deps:
 - path: data/data_output/wind_ms_check.csv
   repo:
     url: git@gitee.com:chenhuang18/critical_minerals
     rev: dev
-    rev_lock: ce68172abbc86993a068ace4be5fa60bae8380ee
+    rev_lock: 96ec5f26c53e4e5c5467335baab0c32d27700076
     config: .dvc/config.local
 outs:
 - md5: 0f0f1fbd7a76980053c401c5f45daa64
