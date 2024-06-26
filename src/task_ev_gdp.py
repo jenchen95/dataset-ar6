@@ -74,7 +74,8 @@ gdp_pop_tofill = (
     .join(
         pl.read_csv('../data/data_raw/category.csv'),
         on=['model','scenario'],
-        how='left'
+        how='left',
+        coalesce=True
     )
     .with_columns(unit=pl.lit('GDP (constant 2010 US$)'))
     .select(pl.col('category','model','scenario','region','year','gdp','population','unit'))
