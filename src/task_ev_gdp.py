@@ -37,9 +37,17 @@ def fit_spline(series, years, parse=False):
 ssp = (
     pl.read_csv('../data/data_man/ssp_family.csv')
 )
+ms_except4region = (
+    pl.scan_csv('../data/data_import/ms_except4region.csv')
+)
 
 gdp_pop = (
     pl.scan_parquet('../data/data_clean/r10.parquet')
+    .join(
+        ms_except4region,
+        on=['model','scenario'],
+        how='anti',
+    )
     .filter(pl.col('category').is_in(['C1','C2','C3','C4']))
     .filter(pl.col('variable').is_in(['GDP|MER', 'Population']))  # Only contains model-scenario which has GDP or Population
     .collect()

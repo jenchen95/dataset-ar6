@@ -4,9 +4,15 @@ import numpy as np
 import scipy
 
 r10_list = pl.read_csv('../data/data_man/r10_list.csv')
+ms_except4region = pl.scan_csv('../data/data_import/ms_except4region.csv')
 
 trp_ele = (
     pl.scan_parquet('../data/data_clean/r10.parquet')
+    .join(
+        ms_except4region,
+        on=['model','scenario'],
+        how='anti',
+    )
     .filter(pl.col('category').is_in(['C1','C2','C3','C4']))
     .filter(pl.col('variable').is_in(
         ['Final Energy|Transportation|Electricity', 
