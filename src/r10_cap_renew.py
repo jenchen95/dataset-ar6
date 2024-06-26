@@ -4,9 +4,15 @@ import polars as pl
 cap_var = ['Capacity|Electricity|Solar|PV', 'Capacity|Electricity|Solar|CSP', 'Capacity|Electricity|Wind|Onshore', 'Capacity|Electricity|Wind|Offshore', 'Capacity|Electricity|Wind']
 
 ms_wind = pl.read_csv('../data/data_import/wind_ms_check.csv')
+ms_except4region = pl.scan_csv('../data/data_import/ms_except4region.csv')
 
 cap = (
     pl.scan_parquet('../data/data_clean/r10.parquet')
+    .join(
+        ms_except4region,
+        on=['model','scenario'],
+        how='anti',
+    )
     .filter(pl.col('category').is_in(['C1','C2','C3','C4']))
     .filter(pl.col('variable').is_in(cap_var))
     .select(pl.exclude('category'))
@@ -25,4 +31,4 @@ cap = (
 )
 
 # Exporting
-cap.sink_parquet('../data/data_task/r10_cap_renew.parquet')
+cap.collect().write_parquet('../data/data_task/r10_cap_renew.parquet')

@@ -1,5 +1,5 @@
 outs:
-- md5: e90477aa178c315c3bc5165a0ad83ac4
-  size: 9357226
+- md5: cf6152d697703e0dc98ba5556e4153f5
+  size: 1229200
   hash: md5
   path: r10_cap_renew.parquet
