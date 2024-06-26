@@ -2,7 +2,9 @@
 ## src
 csv2parquet.py: converting raw AR6 data to parquet format
 
-task_ev.py: r10 population and gdp data
+task_ev_gdp.py: r10 population and gdp data
+
+task_ev_trpele.py: r10 transport electricity demand for ev
 
 ## data
 
@@ -18,6 +20,11 @@ world.parquet
 
 ### data_raw
 
+### data_man
+r10_list.csv: list of r10 regions
+ssp_family.csv: list of ssp families
+trpele_exctrain_ratio.csv: ratio of train electricity demand to total electricity demand
+
 ### data_import
 From project critical_minerals:
     These are two loop check from it. One is for EV and the other is for Wind.
@@ -30,7 +37,7 @@ From project critical_minerals:
 
 ​	gdp_per_cap_future.parquet: C1-C4 gdp and population, r10
 
-   trp_ele_future: r10 transport electricity demand
+   trp_ele_future.parquet: r10 transport electricity demand for ev
 
    r10_cap_renew.parquet: r10 renewable capacity
 
