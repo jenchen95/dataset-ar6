@@ -3,3 +3,4 @@
 /r10_cap_renew.parquet
 /r10_emissions_co2.parquet
 /r10_supply_ele.parquet
+/r10_abate_ratio_by_ele.parquet

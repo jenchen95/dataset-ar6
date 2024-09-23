@@ -59,7 +59,9 @@ co2 = (
 # Calculate bau electricity emissions
 ele_gen = pl.read_parquet('../data/data_task/r10_supply_ele.parquet')
 ele_co2 = (  # join and calculate intensity
-    ele_gen.rename({'value':'supply'})
+    ele_gen
+    .filter(pl.col('variable') == 'Secondary Energy|Electricity')
+    .rename({'value':'supply'})
     .join(
         co2.filter(pl.col('scope') == 'ele').rename({'value':'co2'}), on=['model','scenario','region','year'], how='inner'  # TODO: maybe future fillnull for model-scenario doesn't have ele emissions or ele supply
     ).with_columns(

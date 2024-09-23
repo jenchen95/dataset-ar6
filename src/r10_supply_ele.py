@@ -6,7 +6,15 @@ from func import fit_spline
 ele_gen = (
     pl.scan_parquet('../data/data_clean/r10.parquet')
     .filter(pl.col('category').is_in(['C1','C2','C3','C4']))
-    .filter(pl.col('variable').is_in(['Secondary Energy|Electricity']))
+    .filter(pl.col('variable').is_in([
+        'Secondary Energy|Electricity',
+        'Secondary Energy|Electricity|Solar',
+        'Secondary Energy|Electricity|Solar|CSP',
+        'Secondary Energy|Electricity|Solar|PV',
+        'Secondary Energy|Electricity|Wind',
+        'Secondary Energy|Electricity|Wind|Offshore',
+        'Secondary Energy|Electricity|Wind|Onshore',
+    ]))
     .select(pl.exclude('category'))
     .sort('model','scenario','region','year')
     .collect()
@@ -23,6 +31,7 @@ for pairs, df in ele_gen.group_by(['model', 'scenario', 'region', 'variable']):
                 'model': pairs[0],
                 'scenario': pairs[1],
                 'region': pairs[2],
+                'variable': pairs[3],
                 'unit': unit_ele,
                 'year': year,
                 'value': fit_spline(df['value'], df['year']),
@@ -37,8 +46,8 @@ ele_gen = pl.concat(ele_gen_interp)
 ele_gen = ele_gen.update(
     ele_gen.filter(
     (pl.col('model') == 'WITCH 5.0') & (pl.col('scenario').is_in(['EN_NPi2020_800f','EN_NPi2020_900f']))
-    ).with_columns(scenario=pl.when(pl.col('scenario') == 'EN_NPi2020_800f').then(pl.lit('EN_NPi2020_800')).otherwise(pl.lit('EN_NPi2020_900'))).sort(['model','scenario','region','year']),
-    on = ['model','scenario','region','year'],
+    ).with_columns(scenario=pl.when(pl.col('scenario') == 'EN_NPi2020_800f').then(pl.lit('EN_NPi2020_800')).otherwise(pl.lit('EN_NPi2020_900'))).sort(['model','scenario','region','variable','year']),
+    on = ['model','scenario','region','variable','year'],
     how = 'left'
 )
 
