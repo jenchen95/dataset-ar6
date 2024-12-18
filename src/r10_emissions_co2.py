@@ -72,9 +72,9 @@ ele_co2 = (  # join and calculate intensity
 ele_co2_bau = []
 for pairs, df in ele_co2.group_by(['model','scenario','region']):
     print('Setting bau intensity for ele_gen:', pairs)
-    intensity_const = df.filter(pl.col('year') == 2020)['intensity'].to_numpy()
+    intensity_const = df.filter(pl.col('year') == pl.min('year'))['intensity'].to_numpy()
     df = df.with_columns(
-        intensity=pl.when(pl.col('year') >= 2021)
+        intensity=pl.when(pl.col('year') >= pl.min('year')+1)
         .then(intensity_const)
         .otherwise(pl.col('intensity'))
     ).with_columns(
@@ -104,10 +104,10 @@ trp_co2 = (  # join and calculate intensity
 trp_co2_bau = []
 for pairs, df in trp_co2.group_by(['model','scenario','region']):
     print('Setting bau intensity for trp:', pairs)
-    intensity_const = df.filter(pl.col('year') == 2020)['intensity'].to_numpy()
+    intensity_const = df.filter(pl.col('year') == pl.min('year'))['intensity'].to_numpy()
     df = (
         df.with_columns(
-        intensity=pl.when(pl.col('year') >= 2021)
+        intensity=pl.when(pl.col('year') >= pl.min('year')+1)
         .then(intensity_const)
         .otherwise(pl.col('intensity'))
         ).with_columns(

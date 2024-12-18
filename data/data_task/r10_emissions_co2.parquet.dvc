@@ -1,5 +1,6 @@
 outs:
-- md5: 6ecb87935225311c5aedc4aed03077e0
-  size: 19117844
+- md5: c3474224dcd2e99095ad17ccea92ec3a
+  size: 39951082
   hash: md5
   path: r10_emissions_co2.parquet
+  isexec: true
