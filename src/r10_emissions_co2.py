@@ -37,9 +37,9 @@ for pairs, df in co2.group_by(['model','scenario','region','variable']):
     )
     if co2_var[pairs[3]] == 'ccs_ele':
         if df_interp.filter(pl.col('year') == 2025)['value'].to_numpy() <= 0.05:
-            ccs_baseyear = df_interp.filter(pl.col('year') == 2020)['value'].to_numpy()
+            ccs_baseyear = df_interp.filter(pl.col('year') == pl.min('year'))['value'].to_numpy()
             df_interp = df_interp.with_columns(
-                value=pl.when(pl.col('year').is_between(2021, 2024)).then(ccs_baseyear).otherwise(pl.col('value'))
+                value=pl.when(pl.col('year').is_between(pl.min('year')+1, 2024)).then(ccs_baseyear).otherwise(pl.col('value'))
             )
 
     co2_interp.append(df_interp)
