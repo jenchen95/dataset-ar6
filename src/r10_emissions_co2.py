@@ -85,17 +85,22 @@ ele_co2 = (  # join and calculate intensity
     .rename({'value':'supply'})
     .join(
         co2.filter(pl.col('scope') == 'ele').rename({'value':'co2'}), on=['model','scenario','region','year'], how='inner'  # TODO: maybe future fillnull for model-scenario doesn't have ele emissions or ele supply
-    ).with_columns(
+    )
+    .with_columns(
         intensity=pl.col('co2') / pl.col('supply')  # Mt/EJ
     )
+    .drop_nulls(subset=['intensity'])
 )
 
 ele_co2_bau = []
 for pairs, df in ele_co2.group_by(['model','scenario','region']):
-    print('Setting bau intensity for ele_gen:', pairs)
-    intensity_const = df.filter(pl.col('year') == pl.min('year'))['intensity'].to_numpy()
+    # Find the year of maximum intensity
+    max_intensity_row = df.filter(pl.col('intensity') == pl.col('intensity').max())
+    intensity_const = max_intensity_row['intensity'].to_numpy() + 1e-1  # add a small number to avoid division by zero finally
+    max_intensity_year = max_intensity_row['year'].to_numpy()[0]
+    
     df = df.with_columns(
-        intensity=pl.when(pl.col('year') >= pl.min('year')+1)
+        intensity=pl.when(pl.col('year') >= max_intensity_year)
         .then(intensity_const)
         .otherwise(pl.col('intensity'))
     ).with_columns(
