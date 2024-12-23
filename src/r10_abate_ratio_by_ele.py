@@ -50,19 +50,35 @@ ele_gen = (
             offshore_base=pl.col('offshore').sort_by('year').first().over('model','scenario','region'),
         )
         .with_columns(
-            pv_grow=pl.col('pv') - pl.col('pv_base'),
-            csp_grow=pl.col('csp') - pl.col('csp_base'),
-            onshore_grow=pl.col('onshore') - pl.col('onshore_base'),
-            offshore_grow=pl.col('offshore') - pl.col('offshore_base'),
+            pv_grow=pl.when(pl.col('pv') < pl.col('pv_base'))
+                .then(0)
+                .otherwise(pl.col('pv') - pl.col('pv_base')),
+            csp_grow=pl.when(pl.col('csp') < pl.col('csp_base'))
+                .then(0)
+                .otherwise(pl.col('csp') - pl.col('csp_base')),
+            onshore_grow=pl.when(pl.col('onshore') < pl.col('onshore_base'))
+                .then(0)
+                .otherwise(pl.col('onshore') - pl.col('onshore_base')),
+            offshore_grow=pl.when(pl.col('offshore') < pl.col('offshore_base'))
+                .then(0)
+                .otherwise(pl.col('offshore') - pl.col('offshore_base')),
         )
         .with_columns(
             sum_grow=pl.col('pv_grow') + pl.col('csp_grow') + pl.col('onshore_grow') + pl.col('offshore_grow')
         )
         .with_columns(
-            pv_share=pl.col('pv_grow') / pl.col('sum_grow'),
-            csp_share=pl.col('csp_grow') / pl.col('sum_grow'),
-            onshore_share=pl.col('onshore_grow') / pl.col('sum_grow'),
-            offshore_share=pl.col('offshore_grow') / pl.col('sum_grow'),
+            pv_share=pl.when(pl.col('sum_grow') == 0)
+                .then(0)
+                .otherwise(pl.col('pv_grow') / pl.col('sum_grow')),
+            csp_share=pl.when(pl.col('sum_grow') == 0)
+                .then(0)
+                .otherwise(pl.col('csp_grow') / pl.col('sum_grow')),
+            onshore_share=pl.when(pl.col('sum_grow') == 0)
+                .then(0)
+                .otherwise(pl.col('onshore_grow') / pl.col('sum_grow')),
+            offshore_share=pl.when(pl.col('sum_grow') == 0)
+                .then(0)
+                .otherwise(pl.col('offshore_grow') / pl.col('sum_grow')),
         )
 )
 
