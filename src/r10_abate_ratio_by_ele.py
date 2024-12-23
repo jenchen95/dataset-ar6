@@ -4,7 +4,6 @@ from func import fit_spline
 
 ele_gen = (
         pl.read_parquet('../data/data_task/r10_supply_ele.parquet')
-        .filter(pl.col('year') >= 2020)
         .pivot(
             index=['model','scenario','region','unit','year'],
             columns='variable',
@@ -45,27 +44,26 @@ ele_gen = (
             .otherwise(pl.col('offshore'))
         )
         .with_columns(
-            pv_2020=pl.col('pv').sort_by('year').first().over('model','scenario','region'),
-            csp_2020=pl.col('csp').sort_by('year').first().over('model','scenario','region'),
-            onshore_2020=pl.col('onshore').sort_by('year').first().over('model','scenario','region'),
-            offshore_2020=pl.col('offshore').sort_by('year').first().over('model','scenario','region'),
+            pv_base=pl.col('pv').sort_by('year').first().over('model','scenario','region'),
+            csp_base=pl.col('csp').sort_by('year').first().over('model','scenario','region'),
+            onshore_base=pl.col('onshore').sort_by('year').first().over('model','scenario','region'),
+            offshore_base=pl.col('offshore').sort_by('year').first().over('model','scenario','region'),
         )
         .with_columns(
-            pv_grow=pl.col('pv') - pl.col('pv_2020'),
-            csp_grow=pl.col('csp') - pl.col('csp_2020'),
-            onshore_grow=pl.col('onshore') - pl.col('onshore_2020'),
-            offshore_grow=pl.col('offshore') - pl.col('offshore_2020'),
+            pv_grow=pl.col('pv') - pl.col('pv_base'),
+            csp_grow=pl.col('csp') - pl.col('csp_base'),
+            onshore_grow=pl.col('onshore') - pl.col('onshore_base'),
+            offshore_grow=pl.col('offshore') - pl.col('offshore_base'),
         )
         .with_columns(
-            sum_grow=pl.col('pv_grow').abs() + pl.col('csp_grow').abs() + pl.col('onshore_grow').abs() + pl.col('offshore_grow').abs()
+            sum_grow=pl.col('pv_grow') + pl.col('csp_grow') + pl.col('onshore_grow') + pl.col('offshore_grow')
         )
         .with_columns(
-            pv_share=pl.col('pv_grow').abs() / pl.col('sum_grow'),
-            csp_share=pl.col('csp_grow').abs() / pl.col('sum_grow'),
-            onshore_share=pl.col('onshore_grow').abs() / pl.col('sum_grow'),
-            offshore_share=pl.col('offshore_grow').abs() / pl.col('sum_grow'),
+            pv_share=pl.col('pv_grow') / pl.col('sum_grow'),
+            csp_share=pl.col('csp_grow') / pl.col('sum_grow'),
+            onshore_share=pl.col('onshore_grow') / pl.col('sum_grow'),
+            offshore_share=pl.col('offshore_grow') / pl.col('sum_grow'),
         )
-        .filter(pl.col('year') > 2020)
 )
 
-ele_gen.select(pl.col('model','scenario','region','year','pv_share','csp_share','onshore_share','offshore_share','pv_grow','csp_grow','onshore_grow','offshore_grow','sum_grow','pv','pv_2020','csp','csp_2020','onshore','onshore_2020','offshore','offshore_2020','solar','wind','ele','unit')).write_parquet('../data/data_task/r10_abate_ratio_by_ele.parquet')
+ele_gen.select(pl.col('model','scenario','region','year','pv_share','csp_share','onshore_share','offshore_share','pv_grow','csp_grow','onshore_grow','offshore_grow','sum_grow','pv','pv_base','csp','csp_base','onshore','onshore_base','offshore','offshore_base','solar','wind','ele','unit')).write_parquet('../data/data_task/r10_abate_ratio_by_ele.parquet')
