@@ -3,7 +3,7 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 
 # Fit spline
-def fit_spline(series, years, parse=False, bc='natural'):
+def fit_spline(series, years, parse=False, min_is_zero=True, bc='natural'):
     """
     Applies cubic spline interpolation to each column of the DataFrame.
     """
@@ -32,7 +32,8 @@ def fit_spline(series, years, parse=False, bc='natural'):
         granu_values[(granu_years >= start) & (granu_years <= end)] = 0
 
     # Ensure all values are non-negative
-    granu_values = np.maximum(granu_values, 0)
+    if min_is_zero:
+        granu_values = np.maximum(granu_values, 0)
     granu_values = granu_values.ravel()  # Convert to 1D array
 
     # pad with 0s if the first year is not the beginning year

@@ -31,7 +31,7 @@ for pairs, df in co2.group_by(['model','scenario','region','variable']):
                 'scope': co2_var[pairs[3]],
                 'unit': unit_co2,
                 'year': year,
-                'value': fit_spline(df['value'], df['year']),
+                'value': fit_spline(df['value'], df['year'], min_is_zero=co2_interp_min_is_zero[pairs[3]]),
             }
         )
     )
