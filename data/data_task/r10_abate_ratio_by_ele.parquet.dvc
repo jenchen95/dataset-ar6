@@ -1,5 +1,6 @@
 outs:
-- md5: 79ddb10e967144c921dead9d9ca20fd0
-  size: 43334096
+- md5: d35f9a7f3db2b2cd751c3a0c4ee58731
+  size: 48048198
   hash: md5
   path: r10_abate_ratio_by_ele.parquet
+  isexec: true
