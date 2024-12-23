@@ -43,6 +43,6 @@ From project critical_minerals:
 
    r10_supply_ele.parquet: r10 electricity supply
 
-   r10_emissions.parquet: r10 emissions containing total, ele, trp, ccs_ele, and ele_bau
+   r10_emissions_co2.parquet: r10 emissions containing total, ele, trp, ccs_ele, and ele_bau
 
    r10_abate_ratio_by_ele.parquet: r10 abatement contribution by power technologies' power grow volume compared to 2020.
