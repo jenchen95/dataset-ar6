@@ -122,26 +122,29 @@ trp_co2 = (  # join and calculate intensity
     vehicle_stock
     .join(
         co2.filter(pl.col('scope') == 'trp').rename({'value':'co2'}), on=['model','scenario','region','year'], how='inner'  # TODO: maybe future fillnull for model-scenario in co2 doesn't have vehicle stock. Slighly different from ele_gen, vehicle stock contains all model-scenario used in this project (474 model-scenario)
-    ).with_columns(
+    )
+    .with_columns(
         intensity=pl.col('co2') / pl.col('vehicle') * 10e6 # Mt/million vehicle or t/vehicle
     )
+    .drop_nulls(subset=['intensity'])
 )
 
 trp_co2_bau = []
 for pairs, df in trp_co2.group_by(['model','scenario','region']):
-    print('Setting bau intensity for trp:', pairs)
-    intensity_const = df.filter(pl.col('year') == pl.min('year'))['intensity'].to_numpy()
-    df = (
-        df.with_columns(
-        intensity=pl.when(pl.col('year') >= pl.min('year')+1)
+    # Find the year of maximum intensity
+    max_intensity_row = df.filter(pl.col('intensity') == pl.col('intensity').max())
+    intensity_const = max_intensity_row['intensity'].to_numpy() + 1e-1  # add a small number to avoid division by zero finally
+    max_intensity_year = max_intensity_row['year'].to_numpy()[0]
+    
+    df = df.with_columns(
+        intensity=pl.when(pl.col('year') >= max_intensity_year)
         .then(intensity_const)
         .otherwise(pl.col('intensity'))
-        ).with_columns(
+    ).with_columns(
         value=pl.col('vehicle') * pl.col('intensity') / 10e6  # Mt
         ).with_columns(
         scope=pl.lit('trp_bau')
         ).select(pl.exclude('unit')).rename({'unit_right':'unit'})
-    )
 
     trp_co2_bau.append(df)
 
