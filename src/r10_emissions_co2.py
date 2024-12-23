@@ -6,7 +6,19 @@ co2_var = {
     'Emissions|CO2': 'total', 
     'Emissions|CO2|Energy|Supply|Electricity': 'ele', 
     'Emissions|CO2|Energy|Demand|Transportation': 'trp', 
-    'Carbon Sequestration|CCS|Fossil|Energy|Supply|Electricity': 'ccs_ele'}
+    'Carbon Sequestration|CCS|Fossil|Energy|Supply|Electricity': 'ccs_ele',
+    'Carbon Sequestration|CCS|Biomass|Energy|Supply|Electricity': 'beccs_ele',
+    'Carbon Sequestration|CCS|Biomass|Energy|Supply': 'beccs_energy_supply',
+    'Carbon Sequestration|Direct Air Capture': 'dac'}
+
+co2_interp_min_is_zero = {
+    'Emissions|CO2': False,
+    'Emissions|CO2|Energy|Supply|Electricity': False,
+    'Emissions|CO2|Energy|Demand|Transportation': True,
+    'Carbon Sequestration|CCS|Fossil|Energy|Supply|Electricity': True,
+    'Carbon Sequestration|CCS|Biomass|Energy|Supply|Electricity': True,
+    'Carbon Sequestration|CCS|Biomass|Energy|Supply': True,
+    'Carbon Sequestration|Direct Air Capture': True}
 
 co2 = (
     pl.scan_parquet('../data/data_clean/r10.parquet')
@@ -35,7 +47,7 @@ for pairs, df in co2.group_by(['model','scenario','region','variable']):
             }
         )
     )
-    if co2_var[pairs[3]] == 'ccs_ele':
+    if co2_var[pairs[3]] in ['ccs_ele', 'ccs_fossil_energy_supply', 'ccs_fossil', 'beccs_ele', 'beccs_energy_supply', 'dac']:
         if df_interp.filter(pl.col('year') == 2025)['value'].to_numpy() <= 0.05:
             ccs_baseyear = df_interp.filter(pl.col('year') == pl.min('year'))['value'].to_numpy()
             df_interp = df_interp.with_columns(
@@ -44,12 +56,21 @@ for pairs, df in co2.group_by(['model','scenario','region','variable']):
 
     co2_interp.append(df_interp)
 co2 = pl.concat(co2_interp)
-# Fill null with 0 for ccs_ele
+# Fill null with 0 for ccs_ele, beccs_ele, beccs_energy_supply, dac
 co2 = (
     co2.pivot(index=['model','scenario','region','year','unit'],columns=['scope'],values='value')
     .with_columns(
         ccs_ele=pl.when(pl.col('ccs_ele').is_not_null())
         .then(pl.col('ccs_ele'))
+        .otherwise(pl.lit(0)),
+        beccs_ele=pl.when(pl.col('beccs_ele').is_not_null())
+        .then(pl.col('beccs_ele'))
+        .otherwise(pl.lit(0)),
+        beccs_energy_supply=pl.when(pl.col('beccs_energy_supply').is_not_null())
+        .then(pl.col('beccs_energy_supply'))
+        .otherwise(pl.lit(0)),
+        dac=pl.when(pl.col('dac').is_not_null())
+        .then(pl.col('dac'))
         .otherwise(pl.lit(0))
     )
     .melt(id_vars=['model','scenario','region','year','unit'], variable_name='scope', value_name='value')
